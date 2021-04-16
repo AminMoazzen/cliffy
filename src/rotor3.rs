@@ -1,8 +1,8 @@
 use crate::*;
 use std::ops::*;
 
-macro_rules! impl_rotor2 {
-    [$(($t:ident, $nam:ident, $bv:ident, $v2:ident, $m2:ident)), +] => {
+macro_rules! impl_rotor3 {
+    [$(($t:ident, $nam:ident, $bv:ident, $v3:ident, $m3:ident)), +] => {
         $(
             #[derive(Clone, Copy, Debug, Default, PartialEq)]
             #[repr(C)]
@@ -30,7 +30,7 @@ macro_rules! impl_rotor2 {
                 }
 
                 #[inline]
-                pub fn rotate_vec(&self, vec: &mut $v2) {
+                pub fn rotate_vec(&self, vec: &mut $v3) {
                     let fx = self.s * vec.x + self.bv.xy * vec.y;
                     let fy = self.s * vec.y - (self.bv.xy * vec.x);
 
@@ -87,11 +87,11 @@ macro_rules! impl_rotor2 {
                 }
             }
 
-            impl Mul<$v2> for $nam {
-                type Output = $v2;
+            impl Mul<$v3> for $nam {
+                type Output = $v3;
 
                 #[inline]
-                fn mul(self, mut rhs: $v2) -> $v2 {
+                fn mul(self, mut rhs: $v3) -> $v3 {
                     self.rotate_vec(&mut rhs);
                     rhs
                 }
@@ -142,4 +142,4 @@ macro_rules! impl_rotor2 {
     };
 }
 
-impl_rotor2![(f32, Rotor2, Bivec2, Vec2, Mat2)];
+impl_rotor3![(f32, Rotor3, Bivec3, Vec3, Mat3)];

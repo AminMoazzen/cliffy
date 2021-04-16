@@ -1,12 +1,15 @@
 mod bivec2;
+mod bivec3;
 mod rotor2;
-mod utils;
+mod rotor3;
 mod vec2;
 mod vec3;
 mod vec4;
 
 pub use bivec2::*;
+pub use bivec3::*;
 pub use rotor2::*;
+pub use rotor3::*;
 pub use vec2::*;
 pub use vec3::*;
 pub use vec4::*;

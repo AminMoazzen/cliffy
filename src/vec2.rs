@@ -1,5 +1,4 @@
-use super::utils::*;
-use super::*;
+use crate::*;
 use std::ops::*;
 
 macro_rules! impl_vec2 {
@@ -35,22 +34,22 @@ macro_rules! impl_vec2 {
 
                 #[inline]
                 pub fn up() -> Self {
-                    Self::new($t::gen(0.0), $t::gen(1.0))
+                    Self::new(0.0, 1.0)
                 }
 
                 #[inline]
                 pub fn down() -> Self {
-                    Self::new($t::gen(0.0), $t::gen(-1.0))
+                    Self::new(0.0, -1.0)
                 }
 
                 #[inline]
                 pub fn right() -> Self {
-                    Self::new($t::gen(1.0), $t::gen(0.0))
+                    Self::new(1.0, 0.0)
                 }
 
                 #[inline]
                 pub fn left() -> Self {
-                    Self::new($t::gen(-1.0), $t::gen(0.0))
+                    Self::new(-1.0, 0.0)
                 }
 
                 #[inline]
@@ -166,7 +165,7 @@ macro_rules! impl_vec2 {
 
                 #[inline]
                 fn neg(self) -> $nam {
-                    self * $t::gen(-1.0)
+                    self * -1.0
                 }
             }
 
@@ -175,7 +174,7 @@ macro_rules! impl_vec2 {
 
                 #[inline]
                 fn mul(self, rhs: $t) -> Self::Output {
-                    Vec2::new(self.x * rhs, self.y * rhs)
+                    Self::new(self.x * rhs, self.y * rhs)
                 }
             }
 
@@ -201,7 +200,7 @@ macro_rules! impl_vec2 {
 
                 #[inline]
                 fn div(self, rhs: $t) -> Self::Output {
-                    Vec2::new(self.x / rhs, self.y / rhs)
+                    Self::new(self.x / rhs, self.y / rhs)
                 }
             }
 
@@ -296,7 +295,7 @@ macro_rules! impl_vec2 {
             impl Into<$v3> for $nam {
                 #[inline]
                 fn into(self) -> $v3 {
-                    $v3::new(self.x, self.y, $t::gen(0.0))
+                    $v3::new(self.x, self.y, 0.0)
                 }
             }
 
@@ -310,7 +309,7 @@ macro_rules! impl_vec2 {
             impl Into<$v4> for $nam {
                 #[inline]
                 fn into(self) -> $v4 {
-                    $v4::new(self.x, self.y, $t::gen(0.0), $t::gen(0.0))
+                    $v4::new(self.x, self.y, 0.0, 0.0)
                 }
             }
 

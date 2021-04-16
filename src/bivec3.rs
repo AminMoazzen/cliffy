@@ -1,6 +1,6 @@
 use std::ops::*;
 
-macro_rules! impl_bivec3 {
+macro_rules! impl_bivec2 {
     [$(($t:ident, $nam:ident)), +] => {
         $(
             #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -143,4 +143,4 @@ macro_rules! impl_bivec3 {
     };
 }
 
-impl_bivec3![(f32, Bivec3)];
+impl_bivec2![(f32, Bivec2)];
