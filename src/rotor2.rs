@@ -1,5 +1,6 @@
 use crate::*;
 use std::ops::*;
+use utils::*;
 
 macro_rules! impl_rotor2 {
     [$(($t:ident, $nam:ident, $bv:ident, $v2:ident, $m2:ident)), +] => {
@@ -12,8 +13,30 @@ macro_rules! impl_rotor2 {
             }
 
             impl $nam {
+                #[inline]
                 pub fn new(s: $t, bv: $bv) -> Self {
                     Self {s, bv}
+                }
+
+                #[inline]
+                pub fn identity() -> Self {
+                    Self::new($t::gen(1.0), $bv::zero())
+                }
+
+                #[inline]
+                pub fn from_angle(angle: $t) -> Self {
+                    let half_angle = angle / $t::gen(2.0);
+                    let (sin, cos) = half_angle.sin_cos();
+                    Self::new(cos, $bv::new(-sin))
+                }
+
+                #[inline]
+                pub fn rotate_vec(&self, vec: &mut $v2) {
+                    let fx = self.s * vec.x + self.bv.xy * vec.y;
+                    let fy = self.s * vec.y - (self.bv.xy * vec.x);
+
+                    vec.x = self.s * fx + self.bv.xy * fy;
+                    vec.y = self.s * fy - (self.bv.xy * fx);
                 }
             }
 
@@ -65,15 +88,15 @@ macro_rules! impl_rotor2 {
                 }
             }
 
-            // impl Mul<$v2> for $nam {
-            //     type Output = $v2;
+            impl Mul<$v2> for $nam {
+                type Output = $v2;
 
-            //     #[inline]
-            //     fn mul(self, mut rhs: $v2) -> $v2 {
-            //         self.rotate_vec(&mut rhs);
-            //         rhs
-            //     }
-            // }
+                #[inline]
+                fn mul(self, mut rhs: $v2) -> $v2 {
+                    self.rotate_vec(&mut rhs);
+                    rhs
+                }
+            }
 
             impl MulAssign<$t> for $nam {
                 #[inline]

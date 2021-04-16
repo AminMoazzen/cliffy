@@ -79,21 +79,40 @@ macro_rules! impl_vec2 {
                 }
 
                 #[inline]
-                pub fn norm(&mut self) {
+                pub fn normalize(&mut self) {
                     let mag = self.mag();
                     *self /= mag;
                 }
 
                 #[inline]
-                pub fn normed(&self) -> Self {
+                pub fn normalized(&self) -> Self {
                     let mut v = self.clone();
-                    v.norm();
+                    v.normalize();
                     v
                 }
 
                 #[inline]
                 pub fn inverse(&self) -> Self {
                     *self / self.mag_sq()
+                }
+
+                #[inline]
+                pub fn reflect(&self, other: Self) -> Self {
+                    // other.inverse().geom(self) * other
+                    todo!()
+                }
+
+                #[inline]
+                pub fn reject(&self, other: Self) -> Self {
+                    // self.wedge(other) * other.inverse()
+                    todo!()
+                }
+
+                #[inline]
+                pub fn project(&self, other: Self) -> Self {
+                    // self.dot(other) * ohter.inverse()
+                    // (self.dot(other) / other.dot(other)) * other
+                    todo!()
                 }
 
                 #[inline]
@@ -306,22 +325,3 @@ macro_rules! impl_vec2 {
 }
 
 impl_vec2![(f32, Vec2, Vec3, Vec4, Bivec2, Rotor2)];
-
-/* impl Vec2 {
-    pub fn project(&self, other: &Self) -> Self {
-        // self.dot(other) * ohter.inverse()
-        // (self.dot(other) / other.dot(other)) * other
-        todo!()
-    }
-
-    pub fn reject(&mut self, other: &Self) -> Self {
-        // self.wedge(other) * other.inverse()
-        todo!()
-    }
-
-    pub fn reflect(&mut self, other: &Self) -> Self {
-        // other.inverse() * self * other
-        todo!()
-    }
-}
-*/

@@ -1,3 +1,4 @@
+use crate::utils::*;
 use std::ops::*;
 
 macro_rules! impl_bivec2 {
@@ -12,6 +13,16 @@ macro_rules! impl_bivec2 {
             impl $nam {
                 pub fn new(xy: $t) -> Self {
                     Self {xy}
+                }
+
+                #[inline]
+                pub fn zero() -> Self {
+                    Self::new($t::gen(0.0))
+                }
+
+                #[inline]
+                pub fn one() -> Self {
+                    Self::new($t::gen(1.0))
                 }
             }
 
