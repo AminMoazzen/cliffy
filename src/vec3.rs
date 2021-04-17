@@ -63,78 +63,84 @@ macro_rules! impl_vec3 {
                     Self::new(0.0, 0.0, -1.0)
                 }
 
+            }
+
+            impl CommonVecFuncs for Vec3 {
+                type Decimal = $t;
+                type Bivec = $bv;
+                type Rotor = $rot;
+
                 #[inline]
-                pub fn mag(&self) -> $t {
+                fn mag(&self) -> Self::Decimal {
                     self.mag_sq().sqrt()
                 }
 
                 #[inline]
-                pub fn mag_sq(&self) -> $t {
-                    self.x.powi(2) + self.y.powi(2)
+                fn mag_sq(&self) -> Self::Decimal {
+                    self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
                 }
 
                 #[inline]
-                pub fn dot(&self, other: Self) -> $t {
-                    self.x * other.x + self.y * other.y
+                fn dot(&self, other: Self) -> Self::Decimal {
+                    self.x * other.x + self.y * other.y + self.z * other.z
                 }
 
                 #[inline]
-                pub fn wedge(&self, other: Self) -> $bv {
-                    $bv::new(self.x * other.y - self.y * other.x)
+                fn wedge(&self, other: Self) -> Self::Bivec {
+                    todo!()
                 }
 
                 #[inline]
-                pub fn geom(&self, other: Self) -> $rot {
-                    $rot::new(self.dot(other), self.wedge(other))
+                fn geom(&self, other: Self) -> Self::Rotor {
+                    todo!()
                 }
 
                 #[inline]
-                pub fn normalize(&mut self) {
+                fn normalize(&mut self) {
                     let mag = self.mag();
                     *self /= mag;
                 }
 
                 #[inline]
-                pub fn normalized(&self) -> Self {
+                fn normalized(&self) -> Self {
                     let mut v = self.clone();
                     v.normalize();
                     v
                 }
 
                 #[inline]
-                pub fn inverse(&self) -> Self {
+                fn inverse(&self) -> Self {
                     *self / self.mag_sq()
                 }
 
                 #[inline]
-                pub fn reflect(&self, other: Self) -> Self {
+                fn reflect(&self, other: Self) -> Self {
                     // other.inverse().geom(self) * other
                     todo!()
                 }
 
                 #[inline]
-                pub fn reject(&self, other: Self) -> Self {
+                fn reject(&self, other: Self) -> Self {
                     // self.wedge(other) * other.inverse()
                     todo!()
                 }
 
                 #[inline]
-                pub fn project(&self, other: Self) -> Self {
+                fn project(&self, other: Self) -> Self {
                     // self.dot(other) * ohter.inverse()
                     // (self.dot(other) / other.dot(other)) * other
                     todo!()
                 }
 
                 #[inline]
-                pub fn to(&self, dest: Self) -> Self {
-                    dest - *self
+                fn to_target(&self, target: Self) -> Self {
+                    target - *self
                 }
 
                 #[inline]
-                pub fn dist(&self, dest: Self) -> $t {
-                    self.to(dest).mag()
+                fn dist_to_target(&self, target: Self) -> Self::Decimal {
+                    self.to_target(target).mag()
                 }
-
             }
 
             impl Add for $nam {
@@ -239,6 +245,7 @@ macro_rules! impl_vec3 {
                     match index {
                         0 => &self.x,
                         1 => &self.y,
+                        2 => &self.z,
                         _i => panic!("{} is not a valid index for {}", _i, std::any::type_name::<$nam>()),
                     }
                 }
@@ -249,15 +256,16 @@ macro_rules! impl_vec3 {
                     match index {
                         0 => &mut self.x,
                         1 => &mut self.y,
+                        2 => &mut self.z,
                         _i => panic!("{} is not a valid index for {}", _i, std::any::type_name::<$nam>()),
                     }
                 }
             }
 
-            impl Into<[$t; 2]> for $nam {
+            impl Into<[$t; 3]> for $nam {
                 #[inline]
-                fn into(self) -> [$t; 2] {
-                    [self.x, self.y]
+                fn into(self) -> [$t; 3] {
+                    [self.x, self.y, self.z]
                 }
             }
 

@@ -5,6 +5,7 @@ mod rotor3;
 mod vec2;
 mod vec3;
 mod vec4;
+mod vec_commons;
 
 pub use bivec2::*;
 pub use bivec3::*;
@@ -13,6 +14,7 @@ pub use rotor3::*;
 pub use vec2::*;
 pub use vec3::*;
 pub use vec4::*;
+pub use vec_commons::*;
 
 #[cfg(test)]
 mod tests {

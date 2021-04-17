@@ -51,79 +51,84 @@ macro_rules! impl_vec2 {
                 pub fn left() -> Self {
                     Self::new(-1.0, 0.0)
                 }
+            }
+
+            impl CommonVecFuncs for Vec2 {
+                type Decimal = $t;
+                type Bivec = $bv;
+                type Rotor = $rot;
 
                 #[inline]
-                pub fn mag(&self) -> $t {
+                fn mag(&self) -> Self::Decimal {
                     self.mag_sq().sqrt()
                 }
 
                 #[inline]
-                pub fn mag_sq(&self) -> $t {
+                fn mag_sq(&self) -> Self::Decimal {
                     self.x.powi(2) + self.y.powi(2)
                 }
 
                 #[inline]
-                pub fn dot(&self, other: Self) -> $t {
+                fn dot(&self, other: Self) -> Self::Decimal {
                     self.x * other.x + self.y * other.y
                 }
 
                 #[inline]
-                pub fn wedge(&self, other: Self) -> $bv {
-                    $bv::new(self.x * other.y - self.y * other.x)
+                fn wedge(&self, other: Self) -> Self::Bivec {
+                    Self::Bivec::new(self.x * other.y - self.y * other.x)
                 }
 
                 #[inline]
-                pub fn geom(&self, other: Self) -> $rot {
-                    $rot::new(self.dot(other), self.wedge(other))
+                fn geom(&self, other: Self) -> Self::Rotor {
+                    Self::Rotor::new(self.dot(other), self.wedge(other))
                 }
 
                 #[inline]
-                pub fn normalize(&mut self) {
+                fn normalize(&mut self) {
                     let mag = self.mag();
                     *self /= mag;
                 }
 
                 #[inline]
-                pub fn normalized(&self) -> Self {
+                fn normalized(&self) -> Self {
                     let mut v = self.clone();
                     v.normalize();
                     v
                 }
 
                 #[inline]
-                pub fn inverse(&self) -> Self {
+                fn inverse(&self) -> Self {
                     *self / self.mag_sq()
                 }
 
                 #[inline]
-                pub fn reflect(&self, other: Self) -> Self {
+                fn reflect(&self, other: Self) -> Self {
                     // other.inverse().geom(self) * other
                     todo!()
                 }
 
                 #[inline]
-                pub fn reject(&self, other: Self) -> Self {
+                fn reject(&self, other: Self) -> Self {
                     // self.wedge(other) * other.inverse()
                     todo!()
                 }
 
                 #[inline]
-                pub fn project(&self, other: Self) -> Self {
+                fn project(&self, other: Self) -> Self {
                     // self.dot(other) * ohter.inverse()
                     // (self.dot(other) / other.dot(other)) * other
                     todo!()
                 }
 
                 #[inline]
-                pub fn to(&self, dest: Self) -> Self {
-                    dest - *self
+                fn to_target(&self, target: Self) -> Self {
+                    target - *self
                 }
 
                 #[inline]
-                pub fn dist(&self, dest: Self) -> $t {
-                    self.to(dest).mag()
+                fn dist_to_target(&self, target: Self) -> Self::Decimal {
+                    self.to_target(target).mag()
                 }
-
             }
 
             impl Add for $nam {
