@@ -65,7 +65,7 @@ macro_rules! impl_vec3 {
 
             }
 
-            impl CommonVecFuncs for Vec3 {
+            impl Vector for Vec3 {
                 type Decimal = $t;
                 type Bivec = $bv;
                 type Rotor = $rot;

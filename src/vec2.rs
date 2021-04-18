@@ -53,7 +53,7 @@ macro_rules! impl_vec2 {
                 }
             }
 
-            impl CommonVecFuncs for Vec2 {
+            impl Vector for Vec2 {
                 type Decimal = $t;
                 type Bivec = $bv;
                 type Rotor = $rot;

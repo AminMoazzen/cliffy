@@ -1,4 +1,4 @@
-pub trait CommonVecFuncs {
+pub trait Vector {
     type Decimal;
     type Bivec;
     type Rotor;
