@@ -1,27 +1,24 @@
 use std::ops::*;
 
-macro_rules! impl_bivec2 {
+macro_rules! impl_bivec3 {
     [$(($t:ident, $nam:ident)), +] => {
         $(
             #[derive(Clone, Copy, Debug, Default, PartialEq)]
             #[repr(C)]
             pub struct $nam {
-                pub xy: $t
+                pub xy: $t,
+                pub xz: $t,
+                pub yz: $t,
             }
 
             impl $nam {
-                pub fn new(xy: $t) -> Self {
-                    Self {xy}
+                pub fn new(xy: $t, xz: $t, yz: $t) -> Self {
+                    Self {xy, xz, yz}
                 }
 
                 #[inline]
                 pub fn zero() -> Self {
-                    Self::new(0.0)
-                }
-
-                #[inline]
-                pub fn one() -> Self {
-                    Self::new(1.0)
+                    Self::new(0.0, 0.0, 0.0)
                 }
             }
 
@@ -30,7 +27,7 @@ macro_rules! impl_bivec2 {
 
                 #[inline]
                 fn add(self, rhs: $nam) -> Self {
-                    $nam::new(self.xy + rhs.xy)
+                    $nam::new(self.xy + rhs.xy, self.xz + rhs.xz, self.yz + rhs.yz)
                 }
             }
 
@@ -38,6 +35,8 @@ macro_rules! impl_bivec2 {
                 #[inline]
                 fn add_assign(&mut self, rhs: $nam) {
                     self.xy += rhs.xy;
+                    self.xz += rhs.xz;
+                    self.yz += rhs.yz;
                 }
             }
 
@@ -46,7 +45,7 @@ macro_rules! impl_bivec2 {
 
                 #[inline]
                 fn sub(self, rhs: $nam) -> Self {
-                    $nam::new(self.xy - rhs.xy)
+                    $nam::new(self.xy - rhs.xy, self.xz - rhs.xz, self.yz - rhs.yz)
                 }
             }
 
@@ -54,6 +53,8 @@ macro_rules! impl_bivec2 {
                 #[inline]
                 fn sub_assign(&mut self, rhs: $nam) {
                     self.xy -= rhs.xy;
+                    self.xz -= rhs.xz;
+                    self.yz -= rhs.yz;
                 }
             }
 
@@ -62,7 +63,7 @@ macro_rules! impl_bivec2 {
 
                 #[inline]
                 fn mul(self, rhs: $nam) -> Self {
-                    $nam::new(self.xy * rhs.xy)
+                    $nam::new(self.xy * rhs.xy, self.xz * rhs.xz, self.yz * rhs.yz)
                 }
             }
 
@@ -71,7 +72,7 @@ macro_rules! impl_bivec2 {
 
                 #[inline]
                 fn mul(self, rhs: $nam) -> $nam {
-                    $nam::new(self * rhs.xy)
+                    $nam::new(self * rhs.xy, self * rhs.xz, self * rhs.yz)
                 }
             }
 
@@ -80,7 +81,7 @@ macro_rules! impl_bivec2 {
 
                 #[inline]
                 fn mul(self, rhs: $t) -> Self {
-                    $nam::new(self.xy * rhs)
+                    $nam::new(self.xy * rhs, self.xz * rhs, self.yz * rhs)
                 }
             }
 
@@ -88,6 +89,8 @@ macro_rules! impl_bivec2 {
                 #[inline]
                 fn mul_assign(&mut self, rhs: Self) {
                     self.xy *= rhs.xy;
+                    self.xz *= rhs.xz;
+                    self.yz *= rhs.yz;
                 }
             }
 
@@ -95,6 +98,8 @@ macro_rules! impl_bivec2 {
                 #[inline]
                 fn mul_assign(&mut self, rhs: $t) {
                     self.xy *= rhs;
+                    self.xz *= rhs;
+                    self.yz *= rhs;
                 }
             }
 
@@ -103,7 +108,7 @@ macro_rules! impl_bivec2 {
 
                 #[inline]
                 fn div(self, rhs: $nam) -> Self {
-                    $nam::new(self.xy / rhs.xy)
+                    $nam::new(self.xy / rhs.xy, self.xz / rhs.xz, self.yz / rhs.yz)
                 }
             }
 
@@ -112,7 +117,7 @@ macro_rules! impl_bivec2 {
 
                 #[inline]
                 fn div(self, rhs: $t) -> $nam {
-                    $nam::new(self.xy / rhs)
+                    $nam::new(self.xy / rhs, self.xz / rhs, self.yz / rhs)
                 }
             }
 
@@ -120,6 +125,8 @@ macro_rules! impl_bivec2 {
                 #[inline]
                 fn div_assign(&mut self, rhs: $nam) {
                     self.xy /= rhs.xy;
+                    self.xz /= rhs.xz;
+                    self.yz /= rhs.yz;
                 }
             }
 
@@ -127,6 +134,8 @@ macro_rules! impl_bivec2 {
                 #[inline]
                 fn div_assign(&mut self, rhs: $t) {
                     self.xy /= rhs;
+                    self.xz /= rhs;
+                    self.yz /= rhs;
                 }
             }
 
@@ -136,6 +145,8 @@ macro_rules! impl_bivec2 {
                 #[inline]
                 fn neg(mut self) -> Self {
                     self.xy = -self.xy;
+                    self.xz = -self.xz;
+                    self.yz = -self.yz;
                     self
                 }
             }
@@ -143,4 +154,4 @@ macro_rules! impl_bivec2 {
     };
 }
 
-impl_bivec2![(f32, Bivec2)];
+impl_bivec3![(f32, Bivec3)];

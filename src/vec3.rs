@@ -63,6 +63,15 @@ macro_rules! impl_vec3 {
                     Self::new(0.0, 0.0, -1.0)
                 }
 
+                #[inline]
+                pub fn cross(&self, other: Self) -> Self {
+                    Self::new(
+                        (self.y * other.z) - (self.z * other.y),
+                       -(self.x * other.z) - (self.z * other.x),
+                        (self.x * other.y) - (self.y * other.x),
+                    )
+                }
+
             }
 
             impl Vector for Vec3 {
@@ -87,12 +96,16 @@ macro_rules! impl_vec3 {
 
                 #[inline]
                 fn wedge(&self, other: Self) -> Self::Bivec {
-                    todo!()
+                    Self::Bivec::new(
+                        (self.x * other.y) - (self.y * other.x),
+                        (self.x * other.z) - (self.z * other.x),
+                        (self.y * other.z) - (self.z * other.y),
+                    )
                 }
 
                 #[inline]
                 fn geom(&self, other: Self) -> Self::Rotor {
-                    todo!()
+                    Self::Rotor::new(self.dot(other), self.wedge(other))
                 }
 
                 #[inline]
@@ -109,27 +122,54 @@ macro_rules! impl_vec3 {
                 }
 
                 #[inline]
-                fn inverse(&self) -> Self {
-                    *self / self.mag_sq()
+                fn project(&mut self, other: Self) {
+                    *self = (self.dot(other) / other.mag_sq()) * other;
                 }
 
                 #[inline]
-                fn reflect(&self, other: Self) -> Self {
-                    // other.inverse().geom(self) * other
-                    todo!()
+                fn projected(&self, other: Self) -> Self {
+                    let mut v = self.clone();
+                    v. project(other);
+                    v
                 }
 
                 #[inline]
-                fn reject(&self, other: Self) -> Self {
-                    // self.wedge(other) * other.inverse()
-                    todo!()
+                fn reject(&mut self, other: Self) {
+                    // self = self - self.project(other)
+                    *self -= (self.dot(other) / other.mag_sq()) * other;
                 }
 
                 #[inline]
-                fn project(&self, other: Self) -> Self {
-                    // self.dot(other) * ohter.inverse()
-                    // (self.dot(other) / other.dot(other)) * other
-                    todo!()
+                fn rejected(&self, other: Self) -> Self {
+                    let mut v = self.clone();
+                    v. reject(other);
+                    v
+                }
+
+                #[inline]
+                fn reflect(&mut self, other: Self) {
+                    // self = self - 2 * self.project(other)
+                    *self -= 2.0 * (self.dot(other) / other.mag_sq()) * other;
+                }
+
+                #[inline]
+                fn reflected(&self, other: Self) -> Self {
+                    let mut v = self.clone();
+                    v. reflect(other);
+                    v
+                }
+
+                #[inline]
+                fn reflect_normal(&mut self, normal: Self) {
+                    // self = self - 2 * self.project(normal)
+                    *self -= 2.0 * self.dot(normal) * normal;
+                }
+
+                #[inline]
+                fn reflected_normal(&self, normal: Self) -> Self {
+                    let mut v = self.clone();
+                    v. reflect_normal(normal);
+                    v
                 }
 
                 #[inline]

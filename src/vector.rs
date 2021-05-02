@@ -17,13 +17,21 @@ pub trait Vector {
 
     fn normalized(&self) -> Self;
 
-    fn inverse(&self) -> Self;
+    fn project(&mut self, other: Self);
 
-    fn reflect(&self, other: Self) -> Self;
+    fn projected(&self, other: Self) -> Self;
 
-    fn reject(&self, other: Self) -> Self;
+    fn reject(&mut self, other: Self);
 
-    fn project(&self, other: Self) -> Self;
+    fn rejected(&self, other: Self) -> Self;
+
+    fn reflect(&mut self, other: Self);
+
+    fn reflected(&self, other: Self) -> Self;
+
+    fn reflect_normal(&mut self, normal: Self);
+
+    fn reflected_normal(&self, normal: Self) -> Self;
 
     fn to_target(&self, target: Self) -> Self;
 
