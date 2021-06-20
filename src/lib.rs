@@ -1,5 +1,6 @@
 mod bivec2;
 mod bivec3;
+mod bivector;
 mod rot2;
 mod rot3;
 mod rotor;
@@ -10,6 +11,7 @@ mod vector;
 
 pub use bivec2::*;
 pub use bivec3::*;
+pub use bivector::*;
 pub use rot2::*;
 pub use rot3::*;
 pub use rotor::*;
