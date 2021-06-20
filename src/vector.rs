@@ -33,7 +33,17 @@ pub trait Vector {
 
     fn reflected_normal(&self, normal: Self) -> Self;
 
-    fn to_target(&self, target: Self) -> Self;
+    fn to_other(&self, other: Self) -> Self;
 
-    fn dist_to_target(&self, target: Self) -> Self::Decimal;
+    fn dist_to_other(&self, other: Self) -> Self::Decimal;
+
+    fn angle_between(&self, other: Self) -> Self::Decimal;
+
+    fn angle_between_normal(&self, other: Self) -> Self::Decimal;
+
+    fn lerp(&self, to: Self, to: Self::Decimal) -> Self;
+
+    fn slerp(&self, to: Self, to: Self::Decimal) -> Self;
+
+    fn nlerp(&self, to: Self, to: Self::Decimal) -> Self;
 }

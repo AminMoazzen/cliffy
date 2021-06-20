@@ -148,13 +148,41 @@ macro_rules! impl_vec2 {
                 }
 
                 #[inline]
-                fn to_target(&self, target: Self) -> Self {
-                    target - *self
+                fn to_other(&self, other: Self) -> Self {
+                    other - *self
                 }
 
                 #[inline]
-                fn dist_to_target(&self, target: Self) -> Self::Decimal {
-                    self.to_target(target).mag()
+                fn dist_to_other(&self, other: Self) -> Self::Decimal {
+                    self.to_other(other).mag()
+                }
+
+                #[inline]
+                fn angle_between(&self, other: Self) -> Self::Decimal {
+                    self.normalized().dot(other.normalized()).acos()
+                }
+
+                #[inline]
+                fn angle_between_normal(&self, other: Self) -> Self::Decimal {
+                    self.dot(other).acos()
+                }
+
+                #[inline]
+                fn lerp(&self, to: Self, t: Self::Decimal) -> Self {
+                    (1.0 - t) * *self + t * to
+                }
+
+                #[inline]
+                fn slerp(&self, to: Self, t: Self::Decimal) -> Self {
+                    let theta = self.angle_between(to);
+                    let self_coef = ((1.0 - t) * theta).sin() / theta.sin();
+                    let to_coef = (t * theta).sin() / theta.sin();
+                    self_coef * *self + to_coef * to
+                }
+
+                #[inline]
+                fn nlerp(&self, to: Self, t: Self::Decimal) -> Self {
+                    self.lerp(to, t).normalized()
                 }
             }
 
@@ -355,4 +383,4 @@ macro_rules! impl_vec2 {
     };
 }
 
-impl_vec2![(f32, Vec2, Vec3, Vec4, Bivec2, Rotor2)];
+impl_vec2![(f32, Vec2, Vec3, Vec4, Bivec2, Rot2)];
