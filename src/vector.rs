@@ -39,7 +39,7 @@ pub trait Vector {
 
     fn angle_between(&self, other: Self) -> Self::Decimal;
 
-    fn angle_between_normal(&self, other: Self) -> Self::Decimal;
+    fn angle_between_normal(&self, normal: Self) -> Self::Decimal;
 
     fn lerp(&self, to: Self, to: Self::Decimal) -> Self;
 

@@ -188,8 +188,8 @@ macro_rules! impl_vec3 {
                 }
 
                 #[inline]
-                fn angle_between_normal(&self, other: Self) -> Self::Decimal {
-                    self.dot(other).acos()
+                fn angle_between_normal(&self, normal: Self) -> Self::Decimal {
+                    self.dot(normal).acos()
                 }
 
                 #[inline]
