@@ -1,8 +1,8 @@
 use crate::*;
 use std::ops::*;
 
-macro_rules! impl_rotor2 {
-    [$(($t:ident, $nam:ident, $bv:ident, $v2:ident, $m2:ident)), +] => {
+macro_rules! impl_rotor3 {
+    [$(($t:ident, $nam:ident, $bv:ident, $v3:ident, $m3:ident)), +] => {
         $(
             #[derive(Clone, Copy, Debug, Default, PartialEq)]
             #[repr(C)]
@@ -23,19 +23,22 @@ macro_rules! impl_rotor2 {
                 }
 
                 #[inline]
-                pub fn from_angle(angle: $t) -> Self {
+                pub fn from_angle_plane(angle: $t, plane: $bv) -> Self {
                     let half_angle = angle / 2.0;
                     let (sin, cos) = half_angle.sin_cos();
-                    Self::new(cos, $bv::new(-sin))
+                    Self::new(cos, -sin * plane)
                 }
 
                 #[inline]
-                pub fn rotate_vec(&self, vec: &mut $v2) {
-                    let fx = self.s * vec.x + self.bv.xy * vec.y;
-                    let fy = self.s * vec.y - (self.bv.xy * vec.x);
+                pub fn rotate_vec(&self, vec: &mut $v3) {
+                    let fe1 = self.s * vec.x + self.bv.xy * vec.y + self.bv.xz * vec.z;
+                    let fe2 = self.s * vec.y - self.bv.xy * vec.x + self.bv.yz * vec.z;
+                    let fe3 = self.s * vec.z - self.bv.xz * vec.x - self.bv.yz * vec.y;
+                    let fe1e2e3 = self.bv.xy * vec.z - self.bv.xz * vec.y + self.bv.yz * vec.x;
 
-                    vec.x = self.s * fx + self.bv.xy * fy;
-                    vec.y = self.s * fy - (self.bv.xy * fx);
+                    vec.x = self.s * fe1 + self.bv.xy * fe2 + self.bv.xz * fe3 + self.bv.yz * fe1e2e3;
+                    vec.y = self.s * fe2 - self.bv.xy * fe1 - self.bv.xz * fe1e2e3 + self.bv.yz * fe3;
+                    vec.z = self.s * fe3 + self.bv.xy * fe1e2e3 - self.bv.xz * fe1 - self.bv.yz * fe2;
                 }
             }
 
@@ -79,19 +82,21 @@ macro_rules! impl_rotor2 {
                 #[inline]
                 fn mul(self, rhs: Self) -> Self {
                     Self {
-                        s: self.s * rhs.s - (self.bv.xy * rhs.bv.xy),
+                        s: self.s * rhs.s - self.bv.xy * rhs.bv.xy - self.bv.xz * rhs.bv.xz - self.bv.yz * rhs.bv.yz,
                         bv: $bv {
-                            xy: self.s * rhs.bv.xy + rhs.s * self.bv.xy,
+                            xy: self.bv.xy * rhs.s + self.s * rhs.bv.xy + self.bv.yz * rhs.bv.xz - self.bv.xz * rhs.bv.yz,
+                            xz: self.bv.xz * rhs.s + self.s * rhs.bv.xz - self.bv.yz * rhs.bv.xy + self.bv.xy * rhs.bv.yz,
+                            yz: self.bv.yz * rhs.s + self.s * rhs.bv.yz + self.bv.xz * rhs.bv.xy - self.bv.xy * rhs.bv.xz,
                         }
                     }
                 }
             }
 
-            impl Mul<$v2> for $nam {
-                type Output = $v2;
+            impl Mul<$v3> for $nam {
+                type Output = $v3;
 
                 #[inline]
-                fn mul(self, mut rhs: $v2) -> $v2 {
+                fn mul(self, mut rhs: $v3) -> $v3 {
                     self.rotate_vec(&mut rhs);
                     rhs
                 }
@@ -142,4 +147,4 @@ macro_rules! impl_rotor2 {
     };
 }
 
-impl_rotor2![(f32, Rotor2, Bivec2, Vec2, Mat2)];
+impl_rotor3![(f32, Rot3, Bivec3, Vec3, Mat3)];
