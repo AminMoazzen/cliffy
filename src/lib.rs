@@ -1,6 +1,8 @@
 mod bivec2;
 mod bivec3;
 mod bivector;
+mod mat3;
+mod mat4;
 mod rot2;
 mod rot3;
 mod rotor;

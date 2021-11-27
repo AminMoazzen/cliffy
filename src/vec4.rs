@@ -1,12 +1,25 @@
-pub struct Vec4 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub w: f32,
+use crate::*;
+
+macro_rules! impl_vec3 {
+    [$(($t:ident, $nam:ident, $v2:ident, $v3:ident)), +] => {
+        $(
+            #[derive(Clone, Copy, Debug, Default, PartialEq)]
+            #[repr(C)]
+            pub struct $nam {
+                pub x: $t,
+                pub y: $t,
+                pub z: $t,
+                pub w: $t,
+            }
+
+            impl $nam{
+                #[inline]
+                pub fn new(x: $t, y: $t, z: $t, w: $t) -> Self {
+                    Self { x, y, z, w }
+                }
+            }
+        )+
+    };
 }
 
-impl Vec4 {
-    pub fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
-        Self { x, y, z, w }
-    }
-}
+impl_vec3![(f32, Vec4, Vec2, Vec3)];
