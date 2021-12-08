@@ -223,8 +223,9 @@ macro_rules! impl_vec3 {
             impl AddAssign for $nam {
                 #[inline]
                 fn add_assign(&mut self, rhs: Self) {
-                    self.x = self.x + rhs.x;
-                    self.y = self.x + rhs.y;
+                    self.x += rhs.x;
+                    self.y += rhs.y;
+                    self.z += rhs.z;
                 }
             }
 
@@ -240,8 +241,9 @@ macro_rules! impl_vec3 {
             impl SubAssign for $nam {
                 #[inline]
                 fn sub_assign(&mut self, rhs: Self) {
-                    self.x = self.x - rhs.x;
-                    self.y = self.x - rhs.y;
+                    self.x -= rhs.x;
+                    self.y -= rhs.y;
+                    self.z -= rhs.z;
                 }
             }
 
@@ -268,6 +270,7 @@ macro_rules! impl_vec3 {
                 fn mul_assign(&mut self, rhs: $t) {
                     self.x *= rhs;
                     self.y *= rhs;
+                    self.z *= rhs;
                 }
             }
 
@@ -294,6 +297,7 @@ macro_rules! impl_vec3 {
                 fn div_assign(&mut self, rhs: $t) {
                     self.x /= rhs;
                     self.y /= rhs;
+                    self.z /= rhs;
                 }
             }
 
@@ -382,7 +386,7 @@ macro_rules! impl_vec3 {
             impl Into<$v4> for $nam {
                 #[inline]
                 fn into(self) -> $v4 {
-                    $v4::new(self.x, self.y, 0.0, 0.0)
+                    $v4::new(self.x, self.y, self.z, 0.0)
                 }
             }
 
