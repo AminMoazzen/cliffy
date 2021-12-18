@@ -66,9 +66,9 @@ macro_rules! impl_vec3 {
                 #[inline]
                 pub fn cross(&self, other: Self) -> Self {
                     Self::new(
-                        (self.y * other.z) - (self.z * other.y),
-                       -(self.x * other.z) - (self.z * other.x),
-                        (self.x * other.y) - (self.y * other.x),
+                        (self.y * other.z) + (-self.z * other.y),
+                        (self.z * other.x) + (-self.x * other.z),
+                        (self.x * other.y) + (-self.y * other.x),
                     )
                 }
 
