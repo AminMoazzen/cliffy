@@ -28,19 +28,140 @@ macro_rules! impl_rotor3 {
                     let (sin, cos) = half_angle.sin_cos();
                     Self::new(cos, -sin * plane)
                 }
+            }
+
+            impl Rotor for $nam {
+                type Decimal = $t;
+                type Vector = $v3;
+                type Matrix = $m3;
 
                 #[inline]
-                pub fn rotate_vec(&self, vec: &mut $v3) {
-                    let fe1 = self.s * vec.x + self.bv.xy * vec.y + self.bv.xz * vec.z;
-                    let fe2 = self.s * vec.y - self.bv.xy * vec.x + self.bv.yz * vec.z;
-                    let fe3 = self.s * vec.z - self.bv.xz * vec.x - self.bv.yz * vec.y;
-                    let fe1e2e3 = self.bv.xy * vec.z - self.bv.xz * vec.y + self.bv.yz * vec.x;
+                fn mag(&self) -> Self::Decimal {
+                    self.mag_sq().sqrt()
+                }
 
-                    vec.x = self.s * fe1 + self.bv.xy * fe2 + self.bv.xz * fe3 + self.bv.yz * fe1e2e3;
-                    vec.y = self.s * fe2 - self.bv.xy * fe1 - self.bv.xz * fe1e2e3 + self.bv.yz * fe3;
-                    vec.z = self.s * fe3 + self.bv.xy * fe1e2e3 - self.bv.xz * fe1 - self.bv.yz * fe2;
+                #[inline]
+                fn mag_sq(&self) -> Self::Decimal {
+                    self.s * self.s + self.bv.mag_sq()
+                }
+
+                #[inline]
+                fn dot(&self, other: Self) -> Self::Decimal {
+                    self.s * other.s + self.bv.dot(other.bv)
+                }
+
+                #[inline]
+                fn normalize(&mut self) {
+                    let mag = self.mag();
+                    self.s /= mag;
+                    self.bv.xy /= mag;
+                    self.bv.xz /= mag;
+                    self.bv.yz /= mag;
+                }
+
+                #[inline]
+                fn normalized(&self) -> Self {
+                    let mut r = self.clone();
+                    r.normalize();
+                    r
+                }
+
+                #[inline]
+                fn reverse(&mut self) {
+                    self.bv = -self.bv;
+                }
+
+                #[inline]
+                fn reversed(&self) -> Self {
+                    let mut r = self.clone();
+                    r.reverse();
+                    r
+                }
+
+                #[inline]
+                fn rotate_by(&mut self, other: Self) {
+                    let b = *self;
+                    let a = other;
+                    let sa2 = a.s * a.s;
+                    let baxy2 = a.bv.xy * a.bv.xy;
+                    let baxz2 = a.bv.xz * a.bv.xz;
+                    let bayz2 = a.bv.yz * a.bv.yz;
+                    let sa_baxy = a.s * a.bv.xy;
+                    let sa_baxz = a.s * a.bv.xz;
+                    let sa_bayz = a.s * a.bv.yz;
+                    let baxy_baxz = a.bv.xy * a.bv.xz;
+                    let baxy_bayz = a.bv.xy * a.bv.yz;
+                    let baxz_bayz = a.bv.xz * a.bv.yz;
+                    let two_bbxy =  2.0 * b.bv.xy;
+                    let two_bbxz =  2.0 * b.bv.xz;
+                    let two_bbyz =  2.0 * b.bv.yz;
+
+                    self.s = (sa2 + baxy2 + baxz2 + bayz2) * b.s;
+
+                    self.bv.xy = (sa2 + baxy2 - baxz2 - bayz2) * b.bv.xy
+                        + (baxy_baxz + sa_bayz) * two_bbxz
+                        + (baxy_bayz - sa_baxz) * two_bbyz;
+
+                    self.bv.xz = (sa2 - baxy2 + baxz2 - bayz2) * b.bv.xz
+                        + (baxy_baxz - sa_bayz) * two_bbxy
+                        + (baxz_bayz + sa_baxy) * two_bbyz;
+
+                    self.bv.yz = (sa2 - baxy2 - baxz2 + bayz2) * b.bv.yz
+                        + (baxy_bayz + sa_baxz) * two_bbxy
+                        + (baxz_bayz - sa_baxy) * two_bbxz;
+                }
+
+                #[inline]
+                fn rotate_vec(&self, vec: &mut $v3) {
+                    let fx = self.s * vec.x + self.bv.xy * vec.y + self.bv.xz * vec.z;
+                    let fy = self.s * vec.y - self.bv.xy * vec.x + self.bv.yz * vec.z;
+                    let fz = self.s * vec.z - self.bv.xz * vec.x - self.bv.yz * vec.y;
+                    let fw = self.bv.xy * vec.z - self.bv.xz * vec.y + self.bv.yz * vec.x;
+
+                    vec.x = self.s * fx + self.bv.xy * fy + self.bv.xz * fz + self.bv.yz * fw;
+                    vec.y = self.s * fy - self.bv.xy * fx - self.bv.xz * fw + self.bv.yz * fz;
+                    vec.z = self.s * fz + self.bv.xy * fw - self.bv.xz * fx - self.bv.yz * fy;
+                }
+
+                #[inline]
+                fn rotated_by(&self, other: Self) -> Self {
+                    let mut r = self.clone();
+                    r.rotate_by(other);
+                    r
+                }
+
+                #[inline]
+                fn into_matrix(&self) -> Self::Matrix {
+                    let s2 = self.s * self.s;
+                    let bxy2 = self.bv.xy * self.bv.xy;
+                    let bxz2 = self.bv.xz * self.bv.xz;
+                    let byz2 = self.bv.yz * self.bv.yz;
+                    let s_bxy = self.s * self.bv.xy;
+                    let s_bxz = self.s * self.bv.xz;
+                    let s_byz = self.s * self.bv.yz;
+                    let bxz_byz = self.bv.xz * self.bv.yz;
+                    let bxy_byz = self.bv.xy * self.bv.yz;
+                    let bxy_bxz = self.bv.xy * self.bv.xz;
+
+                    $m3::new(
+                        $v3::new(
+                            s2 - bxy2 - bxz2 + byz2,
+                            -2.0 * (bxz_byz + s_bxy),
+                            2.0 * (bxy_byz - s_bxz)),
+                        $v3::new(
+                            2.0 * (s_bxy - bxz_byz),
+                            s2 - bxy2 + bxz2 - byz2,
+                            -2.0 * (s_byz + bxy_bxz)
+                        ),
+                        $v3::new(
+                            2.0 * (s_bxz + bxy_byz),
+                            2.0 * (s_byz - bxy_bxz),
+                            s2 + bxy2 - bxz2 - byz2
+                        )
+                    )
                 }
             }
+
 
             impl Add for $nam {
                 type Output = Self;

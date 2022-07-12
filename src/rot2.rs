@@ -28,14 +28,89 @@ macro_rules! impl_rotor2 {
                     let (sin, cos) = half_angle.sin_cos();
                     Self::new(cos, $bv::new(-sin))
                 }
+            }
+
+            impl Rotor for $nam {
+                type Decimal = $t;
+                type Vector = $v2;
+                type Matrix = $m2;
 
                 #[inline]
-                pub fn rotate_vec(&self, vec: &mut $v2) {
+                fn mag(&self) -> Self::Decimal {
+                    self.mag_sq().sqrt()
+                }
+
+                #[inline]
+                fn mag_sq(&self) -> Self::Decimal {
+                    self.s * self.s + self.bv.mag_sq()
+                }
+
+                #[inline]
+                fn dot(&self, other: Self) -> Self::Decimal {
+                    self.s * other.s + self.bv.dot(other.bv)
+                }
+
+                #[inline]
+                fn normalize(&mut self) {
+                    let mag = self.mag();
+                    self.s /= mag;
+                    self.bv.xy /= mag;
+                }
+
+                #[inline]
+                fn normalized(&self) -> Self {
+                    let mut r = self.clone();
+                    r.normalize();
+                    r
+                }
+
+                #[inline]
+                fn reverse(&mut self) {
+                    self.bv = -self.bv;
+                }
+
+                #[inline]
+                fn reversed(&self) -> Self {
+                    let mut r = self.clone();
+                    r.reverse();
+                    r
+                }
+
+                #[inline]
+                fn rotate_by(&mut self, other: Self) {
+                    let b = *self;
+                    let a = other;
+                    let sa2_plus_baxy2 = a.s.mul_add(a.s, a.bv.xy * a.bv.xy);
+
+                    self.s = (a.s - b.s) * a.bv.xy * b.bv.xy
+                        + b.s * sa2_plus_baxy2;
+                    self.bv.xy = b.bv.xy * sa2_plus_baxy2;
+                }
+
+                #[inline]
+                fn rotated_by(&self, other: Self) -> Self {
+                    let mut r = self.clone();
+                    r.rotate_by(other);
+                    r
+                }
+
+                #[inline]
+                fn rotate_vec(&self, vec: &mut Self::Vector) {
                     let fe1 = self.s * vec.x + self.bv.xy * vec.y;
                     let fe2 = self.s * vec.y - (self.bv.xy * vec.x);
 
                     vec.x = self.s * fe1 + self.bv.xy * fe2;
                     vec.y = self.s * fe2 - (self.bv.xy * fe1);
+                }
+
+                #[inline]
+                fn into_matrix(&self) -> Self::Matrix {
+                    let s2_minus_bxy2 = self.s * self.s - self.bv.xy * self.bv.xy;
+                    let two_s_bxy = 2.0 * self.s * self.bv.xy;
+
+                    $m2::new(
+                        $v2::new(s2_minus_bxy2, -two_s_bxy),
+                        $v2::new(two_s_bxy, s2_minus_bxy2))
                 }
             }
 
