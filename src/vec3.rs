@@ -383,6 +383,13 @@ macro_rules! impl_vec3 {
                 }
             }
 
+            impl From<$v2> for $nam {
+                #[inline]
+                fn from(vec2: $v2) -> Self {
+                    Self::new(vec2.x, vec2.y, 0.0)
+                }
+            }
+
             impl From<$v4> for $nam {
                 #[inline]
                 fn from(vec4: $v4) -> Self {

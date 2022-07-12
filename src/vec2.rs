@@ -352,24 +352,10 @@ macro_rules! impl_vec2 {
                 }
             }
 
-            impl Into<$v3> for $nam {
-                #[inline]
-                fn into(self) -> $v3 {
-                    $v3::new(self.x, self.y, 0.0)
-                }
-            }
-
             impl From<$v3> for $nam {
                 #[inline]
                 fn from(vec3: $v3) -> Self {
                     Self::new(vec3.x, vec3.y)
-                }
-            }
-
-            impl Into<$v4> for $nam {
-                #[inline]
-                fn into(self) -> $v4 {
-                    $v4::new(self.x, self.y, 0.0, 0.0)
                 }
             }
 
