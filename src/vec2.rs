@@ -65,7 +65,7 @@ macro_rules! impl_vec2 {
 
                 #[inline]
                 fn mag_sq(&self) -> Self::Decimal {
-                    self.x.powi(2) + self.y.powi(2)
+                    (self.x * self.x) + (self.y * self.y)
                 }
 
                 #[inline]

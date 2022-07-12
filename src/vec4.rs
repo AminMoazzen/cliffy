@@ -41,7 +41,7 @@ macro_rules! impl_vec4 {
 
                 #[inline]
                 pub fn mag_sq(&self) -> $t {
-                    self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2)
+                    (self.x * self.x) + (self.y * self.y) + (self.z * self.z) + (self.w * self.w)
                 }
 
                 #[inline]
