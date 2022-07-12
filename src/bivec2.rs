@@ -1,3 +1,4 @@
+use crate::*;
 use std::ops::*;
 
 macro_rules! impl_bivec2 {
@@ -23,6 +24,34 @@ macro_rules! impl_bivec2 {
                 pub fn one() -> Self {
                     Self::new(1.0)
                 }
+            }
+
+            impl Bivector for Bivec2 {
+                type Decimal = $t;
+
+                fn mag(&self) -> Self::Decimal {
+                    self.xy.abs()
+                }
+
+                fn mag_sq(&self) -> Self::Decimal {
+                    self.xy * self.xy
+                }
+
+                fn dot(&self, other: Self) -> Self::Decimal {
+                    self.xy * other.xy
+                }
+
+                fn normalize(&mut self) {
+                    let mag = self.mag();
+                    *self /= mag;
+                }
+
+                fn normalized(&self) -> Self {
+                    let mut v = self.clone();
+                    v.normalize();
+                    v
+                }
+
             }
 
             impl Add for $nam {
