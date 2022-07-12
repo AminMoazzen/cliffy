@@ -27,23 +27,28 @@ macro_rules! impl_bivec3 {
             impl Bivector for Bivec3 {
                 type Decimal = $t;
 
+                #[inline]
                 fn mag(&self) -> Self::Decimal {
                     self.mag_sq().sqrt()
                 }
 
+                #[inline]
                 fn mag_sq(&self) -> Self::Decimal {
                     (self.xy * self.xy) + (self.xz * self.xz) + (self.yz * self.yz)
                 }
 
+                #[inline]
                 fn dot(&self, other: Self) -> Self::Decimal {
                     (self.xy * other.xy) + (self.xz * other.xz) + (self.yz * other.yz)
                 }
 
+                #[inline]
                 fn normalize(&mut self) {
                     let mag = self.mag();
                     *self /= mag;
                 }
 
+                #[inline]
                 fn normalized(&self) -> Self {
                     let mut v = self.clone();
                     v.normalize();
