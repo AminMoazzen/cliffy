@@ -173,13 +173,13 @@ macro_rules! impl_vec3 {
                 }
 
                 #[inline]
-                fn to_other(&self, other: Self) -> Self {
+                fn to(&self, other: Self) -> Self {
                     other - *self
                 }
 
                 #[inline]
-                fn dist_to_other(&self, other: Self) -> Self::Decimal {
-                    self.to_other(other).mag()
+                fn distance(&self, other: Self) -> Self::Decimal {
+                    self.to(other).mag()
                 }
 
                 #[inline]

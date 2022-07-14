@@ -114,13 +114,13 @@ macro_rules! impl_vec4 {
                 }
 
                 #[inline]
-                pub fn to_other(&self, other: Self) -> Self {
+                pub fn to(&self, other: Self) -> Self {
                     other - *self
                 }
 
                 #[inline]
-                pub fn dist_to_other(&self, other: Self) -> $t {
-                    self.to_other(other).mag()
+                pub fn distance(&self, other: Self) -> $t {
+                    self.to(other).mag()
                 }
 
                 #[inline]

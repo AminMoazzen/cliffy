@@ -25,11 +25,3 @@ pub use vec2::*;
 pub use vec3::*;
 pub use vec4::*;
 pub use vector::*;
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}

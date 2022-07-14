@@ -33,9 +33,9 @@ pub trait Vector {
 
     fn reflected_normal(&self, normal: Self) -> Self;
 
-    fn to_other(&self, other: Self) -> Self;
+    fn to(&self, other: Self) -> Self;
 
-    fn dist_to_other(&self, other: Self) -> Self::Decimal;
+    fn distance(&self, other: Self) -> Self::Decimal;
 
     fn angle_between(&self, other: Self) -> Self::Decimal;
 
