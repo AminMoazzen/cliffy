@@ -86,7 +86,7 @@ fn test_indexing() {
 fn test_index_out_of_range() {
     let v = Vec2::one();
 
-    let _ = v[3];
+    let _ = v[2];
 }
 
 #[test]
@@ -94,7 +94,7 @@ fn test_index_out_of_range() {
 fn test_index_mut_out_of_range() {
     let mut v = Vec2::one();
 
-    v[3] = 5.0;
+    v[2] = 5.0;
 }
 
 #[test]
