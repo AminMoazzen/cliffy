@@ -148,13 +148,13 @@ macro_rules! impl_vec2 {
                 }
 
                 #[inline]
-                fn to_other(&self, other: Self) -> Self {
+                fn to(&self, other: Self) -> Self {
                     other - *self
                 }
 
                 #[inline]
-                fn dist_to_other(&self, other: Self) -> Self::Decimal {
-                    self.to_other(other).mag()
+                fn distance(&self, other: Self) -> Self::Decimal {
+                    self.to(other).mag()
                 }
 
                 #[inline]
@@ -199,7 +199,7 @@ macro_rules! impl_vec2 {
                 #[inline]
                 fn add_assign(&mut self, rhs: Self) {
                     self.x = self.x + rhs.x;
-                    self.y = self.x + rhs.y;
+                    self.y = self.y + rhs.y;
                 }
             }
 
@@ -216,7 +216,7 @@ macro_rules! impl_vec2 {
                 #[inline]
                 fn sub_assign(&mut self, rhs: Self) {
                     self.x = self.x - rhs.x;
-                    self.y = self.x - rhs.y;
+                    self.y = self.y - rhs.y;
                 }
             }
 
@@ -341,6 +341,13 @@ macro_rules! impl_vec2 {
             impl From<&($t, $t)> for $nam {
                 #[inline]
                 fn from(comps: &($t, $t)) -> Self {
+                    Self::from(*comps)
+                }
+            }
+
+            impl From<&mut ($t, $t)> for $nam {
+                #[inline]
+                fn from(comps: &mut ($t, $t)) -> Self {
                     Self::from(*comps)
                 }
             }
