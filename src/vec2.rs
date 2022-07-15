@@ -345,6 +345,13 @@ macro_rules! impl_vec2 {
                 }
             }
 
+            impl From<&mut ($t, $t)> for $nam {
+                #[inline]
+                fn from(comps: &mut ($t, $t)) -> Self {
+                    Self::from(*comps)
+                }
+            }
+
             impl From<$nam> for ($t, $t) {
                 #[inline]
                 fn from(v: $nam) -> Self {
