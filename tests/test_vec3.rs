@@ -452,18 +452,18 @@ fn test_reflected_normal() {
 
 #[test]
 fn test_to() {
-    let v1 = Vec3::new(5.0, 3.0, 5.0);
+    let v1 = Vec3::new(5.0, 3.0, 1.0);
     let v2 = Vec3::new(-1.0, 7.0, 8.0);
 
-    assert_eq!(v1.to(v2), Vec3::new(-6.0, 4.0, 3.0));
+    assert_eq!(v1.to(v2), Vec3::new(-6.0, 4.0, 7.0));
 }
 
 #[test]
 fn test_distance() {
-    let v1 = Vec3::new(5.0, 3.0, 5.0);
+    let v1 = Vec3::new(5.0, 3.0, 1.0);
     let v2 = Vec3::new(-1.0, 7.0, 8.0);
 
-    assert_eq!(v1.distance(v2), Vec3::new(-6.0, 4.0, 3.0).mag());
+    assert_eq!(v1.distance(v2), Vec3::new(-6.0, 4.0, 7.0).mag());
 }
 
 #[test]

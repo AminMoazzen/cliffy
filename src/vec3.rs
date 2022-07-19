@@ -376,7 +376,6 @@ macro_rules! impl_vec3 {
                 }
             }
 
-
             impl From<&mut ($t, $t, $t)> for $nam {
                 #[inline]
                 fn from(comps: &mut ($t, $t, $t)) -> Self {
