@@ -257,7 +257,7 @@ macro_rules! impl_vec4 {
                         0 => &mut self.x,
                         1 => &mut self.y,
                         2 => &mut self.z,
-                        3 => &mut self.z,
+                        3 => &mut self.w,
                         _i => panic!("{} is not a valid index for {}", _i, std::any::type_name::<$nam>()),
                     }
                 }
@@ -301,6 +301,13 @@ macro_rules! impl_vec4 {
             impl From<&($t, $t, $t, $t)> for $nam {
                 #[inline]
                 fn from(comps: &($t, $t, $t, $t)) -> Self {
+                    Self::from(*comps)
+                }
+            }
+
+            impl From<&mut ($t, $t, $t, $t)> for $nam {
+                #[inline]
+                fn from(comps: &mut ($t, $t, $t, $t)) -> Self {
                     Self::from(*comps)
                 }
             }
