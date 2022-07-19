@@ -209,7 +209,7 @@ fn test_normalize() {
 
 #[test]
 fn test_normalized() {
-    let mut v = Vec4::new(1.0, 2.0, 8.0, 10.0);
+    let v = Vec4::new(1.0, 2.0, 8.0, 10.0);
     let mag = 13.0;
 
     assert_eq!(
@@ -230,7 +230,7 @@ fn test_project() {
 #[test]
 fn test_projected() {
     let v1 = Vec4::new(5.0, 0.0, 0.0, 0.0);
-    let mut v2 = Vec4::new(2.0, 3.0, 8.0, -1.0);
+    let v2 = Vec4::new(2.0, 3.0, 8.0, -1.0);
 
     assert_eq!(v2.projected(v1), Vec4::new(2.0, 0.0, 0.0, 0.0));
 }
@@ -247,7 +247,7 @@ fn test_reject() {
 #[test]
 fn test_rejected() {
     let v1 = Vec4::new(5.0, 0.0, 0.0, 0.0);
-    let mut v2 = Vec4::new(2.0, 3.0, 8.0, -1.0);
+    let v2 = Vec4::new(2.0, 3.0, 8.0, -1.0);
 
     assert_eq!(v2.rejected(v1), Vec4::new(0.0, 3.0, 8.0, -1.0));
 }
@@ -264,7 +264,7 @@ fn test_reflect() {
 #[test]
 fn test_reflected() {
     let v1 = Vec4::new(0.0, 10.0, 0.0, 0.0);
-    let mut v2 = Vec4::new(1.0, -1.0, 1.0, 0.0);
+    let v2 = Vec4::new(1.0, -1.0, 1.0, 0.0);
 
     assert_eq!(v2.reflected(v1), Vec4::new(1.0, 1.0, 1.0, 0.0));
 }

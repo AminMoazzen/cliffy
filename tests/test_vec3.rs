@@ -428,7 +428,7 @@ fn test_reflect() {
 #[test]
 fn test_reflected() {
     let v1 = Vec3::new(0.0, 10.0, 0.0);
-    let mut v2 = Vec3::new(1.0, -1.0, 1.0);
+    let v2 = Vec3::new(1.0, -1.0, 1.0);
 
     assert_eq!(v2.reflected(v1), Vec3::new(1.0, 1.0, 1.0));
 }
