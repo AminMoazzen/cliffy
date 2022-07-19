@@ -21,8 +21,12 @@ macro_rules! impl_bivec3 {
                 pub fn zero() -> Self {
                     Self::new(0.0, 0.0, 0.0)
                 }
-            }
 
+                #[inline]
+                pub fn one() -> Self {
+                    Self::new(1.0, 1.0, 1.0)
+                }
+            }
 
             impl Bivector for Bivec3 {
                 type Decimal = $t;
@@ -144,6 +148,15 @@ macro_rules! impl_bivec3 {
                 #[inline]
                 fn div(self, rhs: $nam) -> Self {
                     $nam::new(self.xy / rhs.xy, self.xz / rhs.xz, self.yz / rhs.yz)
+                }
+            }
+
+            impl Div<$nam> for $t {
+                type Output = $nam;
+
+                #[inline]
+                fn div(self, rhs: $nam) -> $nam {
+                    $nam::new(self / rhs.xy, self / rhs.xz, self / rhs.yz)
                 }
             }
 
