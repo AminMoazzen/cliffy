@@ -141,6 +141,15 @@ macro_rules! impl_bivec2 {
                 }
             }
 
+            impl Div<$nam> for $t {
+                type Output = $nam;
+
+                #[inline]
+                fn div(self, rhs: $nam) -> $nam {
+                    $nam::new(self / rhs.xy)
+                }
+            }
+
             impl Div<$t> for $nam {
                 type Output = $nam;
 
