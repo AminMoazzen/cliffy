@@ -1,6 +1,22 @@
 use crate::*;
 use std::ops::*;
 
+#[cfg(target_arch = "x86_64")]
+use std::arch::x86_64::*;
+
+// SSE2-only horizontal sum of all four f32 lanes.
+// Used as the dot-product fallback when SSE4.1 is absent.
+#[cfg(all(target_arch = "x86_64", not(target_feature = "sse4.1")))]
+#[inline(always)]
+unsafe fn hsum_ps_sse2(v: __m128) -> f32 {
+    // [x,y,z,w] → swap pairs → [y,x,w,z]; add → [x+y, x+y, z+w, z+w]
+    let shuf = _mm_shuffle_ps(v, v, 0xB1);
+    let sums = _mm_add_ps(v, shuf);
+    // move high 64-bits to low → [z+w, z+w, …]; add lane 0 → x+y+z+w
+    let shuf = _mm_movehl_ps(shuf, sums);
+    _mm_cvtss_f32(_mm_add_ss(sums, shuf))
+}
+
 macro_rules! impl_vec4 {
     [$(($t:ident, $nam:ident, $v2:ident, $v3:ident)), +] => {
         $(
@@ -13,7 +29,8 @@ macro_rules! impl_vec4 {
                 pub w: $t,
             }
 
-            impl $nam{
+            // ── Common methods ────────────────────────────────────────────────
+            impl $nam {
                 #[inline]
                 pub fn new(x: $t, y: $t, z: $t, w: $t) -> Self {
                     Self { x, y, z, w }
@@ -37,16 +54,6 @@ macro_rules! impl_vec4 {
                 #[inline]
                 pub fn mag(&self) -> $t {
                     self.mag_sq().sqrt()
-                }
-
-                #[inline]
-                pub fn mag_sq(&self) -> $t {
-                    (self.x * self.x) + (self.y * self.y) + (self.z * self.z) + (self.w * self.w)
-                }
-
-                #[inline]
-                pub fn dot(&self, other: Self) -> $t {
-                    self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
                 }
 
                 #[inline]
@@ -76,7 +83,6 @@ macro_rules! impl_vec4 {
 
                 #[inline]
                 pub fn reject(&mut self, other: Self) {
-                    // self = self - self.project(other)
                     *self -= (self.dot(other) / other.mag_sq()) * other;
                 }
 
@@ -89,7 +95,6 @@ macro_rules! impl_vec4 {
 
                 #[inline]
                 pub fn reflect(&mut self, other: Self) {
-                    // self = self - 2 * self.project(other)
                     *self -= 2.0 * (self.dot(other) / other.mag_sq()) * other;
                 }
 
@@ -102,7 +107,6 @@ macro_rules! impl_vec4 {
 
                 #[inline]
                 pub fn reflect_normal(&mut self, normal: Self) {
-                    // self = self - 2 * self.project(normal)
                     *self -= 2.0 * self.dot(normal) * normal;
                 }
 
@@ -134,6 +138,83 @@ macro_rules! impl_vec4 {
                 }
             }
 
+            // ── SIMD dot / mag_sq — SSE4.1 path ──────────────────────────────
+            // dpps computes the dot product of all four lanes in one instruction.
+            // 0xF1 = use all 4 source lanes, write result to lane 0 only.
+            #[cfg(all(target_arch = "x86_64", target_feature = "sse4.1"))]
+            impl $nam {
+                #[inline]
+                pub fn mag_sq(&self) -> $t {
+                    unsafe {
+                        let v = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        _mm_cvtss_f32(_mm_dp_ps(v, v, 0xF1))
+                    }
+                }
+
+                #[inline]
+                pub fn dot(&self, other: Self) -> $t {
+                    unsafe {
+                        let a = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        let b = _mm_loadu_ps(&other.x as *const $t as *const f32);
+                        _mm_cvtss_f32(_mm_dp_ps(a, b, 0xF1))
+                    }
+                }
+            }
+
+            // ── SIMD dot / mag_sq — SSE2 path (no SSE4.1) ────────────────────
+            #[cfg(all(target_arch = "x86_64", not(target_feature = "sse4.1")))]
+            impl $nam {
+                #[inline]
+                pub fn mag_sq(&self) -> $t {
+                    unsafe {
+                        let v = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        hsum_ps_sse2(_mm_mul_ps(v, v))
+                    }
+                }
+
+                #[inline]
+                pub fn dot(&self, other: Self) -> $t {
+                    unsafe {
+                        let a = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        let b = _mm_loadu_ps(&other.x as *const $t as *const f32);
+                        hsum_ps_sse2(_mm_mul_ps(a, b))
+                    }
+                }
+            }
+
+            // ── Scalar dot / mag_sq — non-x86 fallback ───────────────────────
+            #[cfg(not(target_arch = "x86_64"))]
+            impl $nam {
+                #[inline]
+                pub fn mag_sq(&self) -> $t {
+                    (self.x * self.x) + (self.y * self.y) + (self.z * self.z) + (self.w * self.w)
+                }
+
+                #[inline]
+                pub fn dot(&self, other: Self) -> $t {
+                    self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
+                }
+            }
+
+            // ── Add ───────────────────────────────────────────────────────────
+            #[cfg(target_arch = "x86_64")]
+            impl Add for $nam {
+                type Output = $nam;
+
+                #[inline]
+                fn add(self, rhs: Self) -> Self::Output {
+                    unsafe {
+                        let a = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        let b = _mm_loadu_ps(&rhs.x as *const $t as *const f32);
+                        let r = _mm_add_ps(a, b);
+                        let mut out = std::mem::MaybeUninit::<Self>::uninit();
+                        _mm_storeu_ps(out.as_mut_ptr() as *mut f32, r);
+                        out.assume_init()
+                    }
+                }
+            }
+
+            #[cfg(not(target_arch = "x86_64"))]
             impl Add for $nam {
                 type Output = $nam;
 
@@ -143,6 +224,20 @@ macro_rules! impl_vec4 {
                 }
             }
 
+            // ── AddAssign ─────────────────────────────────────────────────────
+            #[cfg(target_arch = "x86_64")]
+            impl AddAssign for $nam {
+                #[inline]
+                fn add_assign(&mut self, rhs: Self) {
+                    unsafe {
+                        let a = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        let b = _mm_loadu_ps(&rhs.x as *const $t as *const f32);
+                        _mm_storeu_ps(&mut self.x as *mut $t as *mut f32, _mm_add_ps(a, b));
+                    }
+                }
+            }
+
+            #[cfg(not(target_arch = "x86_64"))]
             impl AddAssign for $nam {
                 #[inline]
                 fn add_assign(&mut self, rhs: Self) {
@@ -153,6 +248,25 @@ macro_rules! impl_vec4 {
                 }
             }
 
+            // ── Sub ───────────────────────────────────────────────────────────
+            #[cfg(target_arch = "x86_64")]
+            impl Sub for $nam {
+                type Output = $nam;
+
+                #[inline]
+                fn sub(self, rhs: Self) -> Self::Output {
+                    unsafe {
+                        let a = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        let b = _mm_loadu_ps(&rhs.x as *const $t as *const f32);
+                        let r = _mm_sub_ps(a, b);
+                        let mut out = std::mem::MaybeUninit::<Self>::uninit();
+                        _mm_storeu_ps(out.as_mut_ptr() as *mut f32, r);
+                        out.assume_init()
+                    }
+                }
+            }
+
+            #[cfg(not(target_arch = "x86_64"))]
             impl Sub for $nam {
                 type Output = $nam;
 
@@ -162,6 +276,20 @@ macro_rules! impl_vec4 {
                 }
             }
 
+            // ── SubAssign ─────────────────────────────────────────────────────
+            #[cfg(target_arch = "x86_64")]
+            impl SubAssign for $nam {
+                #[inline]
+                fn sub_assign(&mut self, rhs: Self) {
+                    unsafe {
+                        let a = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        let b = _mm_loadu_ps(&rhs.x as *const $t as *const f32);
+                        _mm_storeu_ps(&mut self.x as *mut $t as *mut f32, _mm_sub_ps(a, b));
+                    }
+                }
+            }
+
+            #[cfg(not(target_arch = "x86_64"))]
             impl SubAssign for $nam {
                 #[inline]
                 fn sub_assign(&mut self, rhs: Self) {
@@ -172,7 +300,27 @@ macro_rules! impl_vec4 {
                 }
             }
 
-            impl Neg for $nam{
+            // ── Neg ───────────────────────────────────────────────────────────
+            // XOR with the IEEE 754 sign bit flips the sign of every lane.
+            #[cfg(target_arch = "x86_64")]
+            impl Neg for $nam {
+                type Output = $nam;
+
+                #[inline]
+                fn neg(self) -> $nam {
+                    unsafe {
+                        let v = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        let sign_mask = _mm_set1_ps(-0.0f32);
+                        let r = _mm_xor_ps(v, sign_mask);
+                        let mut out = std::mem::MaybeUninit::<Self>::uninit();
+                        _mm_storeu_ps(out.as_mut_ptr() as *mut f32, r);
+                        out.assume_init()
+                    }
+                }
+            }
+
+            #[cfg(not(target_arch = "x86_64"))]
+            impl Neg for $nam {
                 type Output = $nam;
 
                 #[inline]
@@ -181,6 +329,25 @@ macro_rules! impl_vec4 {
                 }
             }
 
+            // ── Mul<scalar> ───────────────────────────────────────────────────
+            #[cfg(target_arch = "x86_64")]
+            impl Mul<$t> for $nam {
+                type Output = $nam;
+
+                #[inline]
+                fn mul(self, rhs: $t) -> Self::Output {
+                    unsafe {
+                        let a = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        let b = _mm_set1_ps(rhs as f32);
+                        let r = _mm_mul_ps(a, b);
+                        let mut out = std::mem::MaybeUninit::<Self>::uninit();
+                        _mm_storeu_ps(out.as_mut_ptr() as *mut f32, r);
+                        out.assume_init()
+                    }
+                }
+            }
+
+            #[cfg(not(target_arch = "x86_64"))]
             impl Mul<$t> for $nam {
                 type Output = $nam;
 
@@ -190,6 +357,20 @@ macro_rules! impl_vec4 {
                 }
             }
 
+            // ── MulAssign<scalar> ─────────────────────────────────────────────
+            #[cfg(target_arch = "x86_64")]
+            impl MulAssign<$t> for $nam {
+                #[inline]
+                fn mul_assign(&mut self, rhs: $t) {
+                    unsafe {
+                        let a = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        let b = _mm_set1_ps(rhs as f32);
+                        _mm_storeu_ps(&mut self.x as *mut $t as *mut f32, _mm_mul_ps(a, b));
+                    }
+                }
+            }
+
+            #[cfg(not(target_arch = "x86_64"))]
             impl MulAssign<$t> for $nam {
                 #[inline]
                 fn mul_assign(&mut self, rhs: $t) {
@@ -200,15 +381,35 @@ macro_rules! impl_vec4 {
                 }
             }
 
+            // scalar * vec: reuse vec * scalar
             impl Mul<$nam> for $t {
                 type Output = $nam;
 
                 #[inline]
                 fn mul(self, rhs: $nam) -> Self::Output {
-                    $nam::new(self * rhs.x, self * rhs.y, self * rhs.z, self * rhs.w)
+                    rhs * self
                 }
             }
 
+            // ── Div<scalar> ───────────────────────────────────────────────────
+            #[cfg(target_arch = "x86_64")]
+            impl Div<$t> for $nam {
+                type Output = $nam;
+
+                #[inline]
+                fn div(self, rhs: $t) -> Self::Output {
+                    unsafe {
+                        let a = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        let b = _mm_set1_ps(rhs as f32);
+                        let r = _mm_div_ps(a, b);
+                        let mut out = std::mem::MaybeUninit::<Self>::uninit();
+                        _mm_storeu_ps(out.as_mut_ptr() as *mut f32, r);
+                        out.assume_init()
+                    }
+                }
+            }
+
+            #[cfg(not(target_arch = "x86_64"))]
             impl Div<$t> for $nam {
                 type Output = $nam;
 
@@ -218,6 +419,20 @@ macro_rules! impl_vec4 {
                 }
             }
 
+            // ── DivAssign<scalar> ─────────────────────────────────────────────
+            #[cfg(target_arch = "x86_64")]
+            impl DivAssign<$t> for $nam {
+                #[inline]
+                fn div_assign(&mut self, rhs: $t) {
+                    unsafe {
+                        let a = _mm_loadu_ps(&self.x as *const $t as *const f32);
+                        let b = _mm_set1_ps(rhs as f32);
+                        _mm_storeu_ps(&mut self.x as *mut $t as *mut f32, _mm_div_ps(a, b));
+                    }
+                }
+            }
+
+            #[cfg(not(target_arch = "x86_64"))]
             impl DivAssign<$t> for $nam {
                 #[inline]
                 fn div_assign(&mut self, rhs: $t) {
@@ -228,6 +443,25 @@ macro_rules! impl_vec4 {
                 }
             }
 
+            // ── scalar / vec (component-wise reciprocal) ──────────────────────
+            #[cfg(target_arch = "x86_64")]
+            impl Div<$nam> for $t {
+                type Output = $nam;
+
+                #[inline]
+                fn div(self, rhs: $nam) -> Self::Output {
+                    unsafe {
+                        let a = _mm_set1_ps(self as f32);
+                        let b = _mm_loadu_ps(&rhs.x as *const $t as *const f32);
+                        let r = _mm_div_ps(a, b);
+                        let mut out = std::mem::MaybeUninit::<$nam>::uninit();
+                        _mm_storeu_ps(out.as_mut_ptr() as *mut f32, r);
+                        out.assume_init()
+                    }
+                }
+            }
+
+            #[cfg(not(target_arch = "x86_64"))]
             impl Div<$nam> for $t {
                 type Output = $nam;
 
@@ -237,6 +471,7 @@ macro_rules! impl_vec4 {
                 }
             }
 
+            // ── Indexing, conversions (unchanged) ─────────────────────────────
             impl Index<usize> for $nam {
                 type Output =  $t;
 
