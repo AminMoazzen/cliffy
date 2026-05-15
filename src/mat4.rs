@@ -1,6 +1,9 @@
 use crate::*;
 use std::ops::*;
 
+#[cfg(target_arch = "x86_64")]
+use std::arch::x86_64::*;
+
 macro_rules! impl_mat4 {
     [$(($t:ident, $nam:ident, $col:ident)), +] => {
         $(
@@ -44,10 +47,8 @@ macro_rules! impl_mat4 {
 
                 #[inline]
                 pub fn det(&self) -> $t {
-                    // mRC = cols[C].R-field, i.e. element at row R, column C
                     let (c0, c1, c2, c3) = (self.cols[0], self.cols[1], self.cols[2], self.cols[3]);
 
-                    // Precompute 2×2 sub-determinants of the bottom two rows (rows 2,3)
                     let s0 = c0.x * c1.y - c1.x * c0.y;
                     let s1 = c0.x * c2.y - c2.x * c0.y;
                     let s2 = c0.x * c3.y - c3.x * c0.y;
@@ -69,7 +70,6 @@ macro_rules! impl_mat4 {
                 pub fn inverse(&self) -> Option<Self> {
                     let (c0, c1, c2, c3) = (self.cols[0], self.cols[1], self.cols[2], self.cols[3]);
 
-                    // 2×2 sub-determinants of rows 0,1
                     let s0 = c0.x * c1.y - c1.x * c0.y;
                     let s1 = c0.x * c2.y - c2.x * c0.y;
                     let s2 = c0.x * c3.y - c3.x * c0.y;
@@ -77,7 +77,6 @@ macro_rules! impl_mat4 {
                     let s4 = c1.x * c3.y - c3.x * c1.y;
                     let s5 = c2.x * c3.y - c3.x * c2.y;
 
-                    // 2×2 sub-determinants of rows 2,3
                     let c5 = c2.z * c3.w - c3.z * c2.w;
                     let c4 = c1.z * c3.w - c3.z * c1.w;
                     let c3_ = c1.z * c2.w - c2.z * c1.w;
@@ -120,6 +119,49 @@ macro_rules! impl_mat4 {
                 }
             }
 
+            // ── Mat * Vec — SSE2 path ─────────────────────────────────────────
+            // Broadcast each component of rhs across a full __m128 lane via
+            // _mm_shuffle_ps, then multiply by the corresponding column and
+            // accumulate. This turns 16 scalar muls + 12 adds into 4 SIMD muls
+            // + 3 SIMD adds, computing all four output components in parallel.
+            #[cfg(target_arch = "x86_64")]
+            impl Mul<$col> for $nam {
+                type Output = $col;
+
+                #[inline]
+                fn mul(self, rhs: $col) -> $col {
+                    unsafe {
+                        let col0 = _mm_loadu_ps(&self.cols[0].x as *const $t as *const f32);
+                        let col1 = _mm_loadu_ps(&self.cols[1].x as *const $t as *const f32);
+                        let col2 = _mm_loadu_ps(&self.cols[2].x as *const $t as *const f32);
+                        let col3 = _mm_loadu_ps(&self.cols[3].x as *const $t as *const f32);
+                        let v    = _mm_loadu_ps(&rhs.x as *const $t as *const f32);
+
+                        // Shuffle imm8 = (w<<6)|(z<<4)|(y<<2)|x selects from src1/src2.
+                        // With both args identical we get a full broadcast of one lane.
+                        // 0x00 = 0b00_00_00_00 → [v.x, v.x, v.x, v.x]
+                        // 0x55 = 0b01_01_01_01 → [v.y, v.y, v.y, v.y]
+                        // 0xAA = 0b10_10_10_10 → [v.z, v.z, v.z, v.z]
+                        // 0xFF = 0b11_11_11_11 → [v.w, v.w, v.w, v.w]
+                        let vx = _mm_shuffle_ps(v, v, 0x00);
+                        let vy = _mm_shuffle_ps(v, v, 0x55);
+                        let vz = _mm_shuffle_ps(v, v, 0xAA);
+                        let vw = _mm_shuffle_ps(v, v, 0xFF);
+
+                        let r = _mm_add_ps(
+                            _mm_add_ps(_mm_mul_ps(col0, vx), _mm_mul_ps(col1, vy)),
+                            _mm_add_ps(_mm_mul_ps(col2, vz), _mm_mul_ps(col3, vw)),
+                        );
+
+                        let mut out = std::mem::MaybeUninit::<$col>::uninit();
+                        _mm_storeu_ps(out.as_mut_ptr() as *mut f32, r);
+                        out.assume_init()
+                    }
+                }
+            }
+
+            // ── Mat * Vec — scalar fallback ───────────────────────────────────
+            #[cfg(not(target_arch = "x86_64"))]
             impl Mul<$col> for $nam {
                 type Output = $col;
 
@@ -134,6 +176,7 @@ macro_rules! impl_mat4 {
                 }
             }
 
+            // Mat * Mat delegates to Mat * Vec, inheriting the SIMD path above.
             impl Mul for $nam {
                 type Output = Self;
 
