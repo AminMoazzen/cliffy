@@ -526,3 +526,94 @@ fn test_nlerp() {
     assert_eq!(v1.nlerp(v2, 0.5), Vec3::up());
     assert_eq!(v1.nlerp(v2, 1.0), v2.normalized());
 }
+
+#[test]
+fn test_orthogonal_vectors() {
+    let v1 = Vec3::new(1.0, 0.0, 0.0);
+    let v2 = Vec3::new(0.0, 1.0, 0.0);
+
+    assert_eq!(v1.dot(v2), 0.0);
+    assert_eq!(v1.angle_between(v2), std::f32::consts::PI / 2.0);
+}
+
+#[test]
+fn test_parallel_vectors() {
+    let v1 = Vec3::new(2.0, 4.0, 6.0);
+    let v2 = Vec3::new(1.0, 2.0, 3.0);
+
+    let angle = v1.angle_between(v2);
+    assert!(angle.abs() < 1e-3);
+}
+
+#[test]
+fn test_antiparallel_vectors() {
+    let v1 = Vec3::new(2.0, 4.0, 6.0);
+    let v2 = Vec3::new(-1.0, -2.0, -3.0);
+
+    let angle = v1.angle_between(v2);
+    assert!((angle - std::f32::consts::PI).abs() < 1e-3);
+}
+
+#[test]
+fn test_wedge_parallel_vectors() {
+    let v1 = Vec3::new(2.0, 4.0, 6.0);
+    let v2 = Vec3::new(1.0, 2.0, 3.0);
+
+    assert_eq!(v1.wedge(v2), Bivec3::zero());
+}
+
+#[test]
+fn test_cross_anticommutative() {
+    let v1 = Vec3::new(1.0, 0.0, 0.0);
+    let v2 = Vec3::new(0.0, 1.0, 0.0);
+
+    let c1 = v1.cross(v2);
+    let c2 = v2.cross(v1);
+
+    assert_eq!(c1, -c2);
+}
+
+#[test]
+fn test_cross_parallel_vectors() {
+    let v1 = Vec3::new(2.0, 4.0, 6.0);
+    let v2 = Vec3::new(1.0, 2.0, 3.0);
+
+    assert_eq!(v1.cross(v2), Vec3::zero());
+}
+
+#[test]
+fn test_cross_orthogonal_right_hand() {
+    let x_axis = Vec3::right();
+    let y_axis = Vec3::up();
+    let z_axis = Vec3::forward();
+
+    assert_eq!(x_axis.cross(y_axis), z_axis);
+    assert_eq!(y_axis.cross(z_axis), x_axis);
+    assert_eq!(z_axis.cross(x_axis), y_axis);
+}
+
+#[test]
+fn test_unit_vector_magnitude() {
+    let v = Vec3::up();
+
+    assert_eq!(v.mag(), 1.0);
+    assert_eq!(v.mag_sq(), 1.0);
+}
+
+#[test]
+fn test_projected_identity() {
+    let v = Vec3::new(3.0, 4.0, 5.0);
+
+    assert_eq!(v.projected(v), v);
+}
+
+#[test]
+fn test_project_and_reject_sum() {
+    let v1 = Vec3::new(5.0, 0.0, 0.0);
+    let v2 = Vec3::new(2.0, 3.0, 8.0);
+
+    let proj = v2.projected(v1);
+    let rej = v2.rejected(v1);
+
+    assert_eq!(proj + rej, v2);
+}

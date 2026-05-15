@@ -98,3 +98,86 @@ fn test_normalized() {
 
     assert_eq!(bv.normalized(), Bivec2::new(1.0));
 }
+
+#[test]
+fn test_bivec_mul() {
+    let bv1 = Bivec2::new(3.0);
+    let bv2 = Bivec2::new(2.0);
+
+    assert_eq!(bv1 * bv2, Bivec2::new(6.0));
+}
+
+#[test]
+fn test_bivec_div() {
+    let bv1 = Bivec2::new(6.0);
+    let bv2 = Bivec2::new(2.0);
+
+    assert_eq!(bv1 / bv2, Bivec2::new(3.0));
+}
+
+#[test]
+fn test_scalar_mul_bivec() {
+    let bv = Bivec2::new(2.0);
+    let f = 3.0;
+
+    assert_eq!(f * bv, Bivec2::new(6.0));
+    assert_eq!(bv * f, Bivec2::new(6.0));
+}
+
+#[test]
+fn test_scalar_div_bivec() {
+    let bv = Bivec2::new(2.0);
+    let f = 4.0;
+
+    assert_eq!(f / bv, Bivec2::new(2.0));
+    assert_eq!(bv / f, Bivec2::new(0.5));
+}
+
+#[test]
+fn test_mul_assign_bivec() {
+    let mut bv1 = Bivec2::new(3.0);
+    let bv2 = Bivec2::new(2.0);
+
+    bv1 *= bv2;
+    assert_eq!(bv1, Bivec2::new(6.0));
+}
+
+#[test]
+fn test_mul_assign_scalar() {
+    let mut bv = Bivec2::new(3.0);
+
+    bv *= 2.0;
+    assert_eq!(bv, Bivec2::new(6.0));
+}
+
+#[test]
+fn test_div_assign_bivec() {
+    let mut bv1 = Bivec2::new(6.0);
+    let bv2 = Bivec2::new(2.0);
+
+    bv1 /= bv2;
+    assert_eq!(bv1, Bivec2::new(3.0));
+}
+
+#[test]
+fn test_div_assign_scalar() {
+    let mut bv = Bivec2::new(6.0);
+
+    bv /= 2.0;
+    assert_eq!(bv, Bivec2::new(3.0));
+}
+
+#[test]
+fn test_zero_magnitude() {
+    let bv = Bivec2::zero();
+
+    assert_eq!(bv.mag(), 0.0);
+    assert_eq!(bv.mag_sq(), 0.0);
+}
+
+#[test]
+fn test_negative_magnitude() {
+    let bv = Bivec2::new(-3.0);
+
+    assert_eq!(bv.mag(), 3.0);
+}

@@ -124,3 +124,95 @@ fn test_normalized() {
         Bivec3::new(3.0 / mag, 4.0 / mag, 12.0 / mag)
     );
 }
+
+#[test]
+fn test_bivec_mul() {
+    let bv1 = Bivec3::new(2.0, 3.0, 4.0);
+    let bv2 = Bivec3::new(3.0, 2.0, 5.0);
+
+    assert_eq!(bv1 * bv2, Bivec3::new(6.0, 6.0, 20.0));
+}
+
+#[test]
+fn test_bivec_div() {
+    let bv1 = Bivec3::new(6.0, 8.0, 12.0);
+    let bv2 = Bivec3::new(2.0, 2.0, 3.0);
+
+    assert_eq!(bv1 / bv2, Bivec3::new(3.0, 4.0, 4.0));
+}
+
+#[test]
+fn test_scalar_mul_bivec() {
+    let bv = Bivec3::new(2.0, 3.0, 4.0);
+    let f = 3.0;
+
+    assert_eq!(f * bv, Bivec3::new(6.0, 9.0, 12.0));
+    assert_eq!(bv * f, Bivec3::new(6.0, 9.0, 12.0));
+}
+
+#[test]
+fn test_scalar_div_bivec() {
+    let bv = Bivec3::new(2.0, 4.0, 8.0);
+    let f = 2.0;
+
+    assert_eq!(f / bv, Bivec3::new(1.0, 0.5, 0.25));
+    assert_eq!(bv / f, Bivec3::new(1.0, 2.0, 4.0));
+}
+
+#[test]
+fn test_mul_assign_bivec() {
+    let mut bv1 = Bivec3::new(2.0, 3.0, 4.0);
+    let bv2 = Bivec3::new(3.0, 2.0, 5.0);
+
+    bv1 *= bv2;
+    assert_eq!(bv1, Bivec3::new(6.0, 6.0, 20.0));
+}
+
+#[test]
+fn test_mul_assign_scalar() {
+    let mut bv = Bivec3::new(2.0, 3.0, 4.0);
+
+    bv *= 3.0;
+    assert_eq!(bv, Bivec3::new(6.0, 9.0, 12.0));
+}
+
+#[test]
+fn test_div_assign_bivec() {
+    let mut bv1 = Bivec3::new(6.0, 8.0, 12.0);
+    let bv2 = Bivec3::new(2.0, 2.0, 3.0);
+
+    bv1 /= bv2;
+    assert_eq!(bv1, Bivec3::new(3.0, 4.0, 4.0));
+}
+
+#[test]
+fn test_div_assign_scalar() {
+    let mut bv = Bivec3::new(6.0, 8.0, 12.0);
+
+    bv /= 2.0;
+    assert_eq!(bv, Bivec3::new(3.0, 4.0, 6.0));
+}
+
+#[test]
+fn test_zero_magnitude() {
+    let bv = Bivec3::zero();
+
+    assert_eq!(bv.mag(), 0.0);
+    assert_eq!(bv.mag_sq(), 0.0);
+}
+
+#[test]
+fn test_orthogonal_bivectors() {
+    let bv1 = Bivec3::new(1.0, 0.0, 0.0);
+    let bv2 = Bivec3::new(0.0, 1.0, 0.0);
+
+    assert_eq!(bv1.dot(bv2), 0.0);
+}
+
+#[test]
+fn test_parallel_bivectors() {
+    let bv1 = Bivec3::new(2.0, 3.0, 4.0);
+    let bv2 = Bivec3::new(4.0, 6.0, 8.0);
+
+    assert_eq!(bv1.dot(bv2), 8.0 + 18.0 + 32.0);
+}

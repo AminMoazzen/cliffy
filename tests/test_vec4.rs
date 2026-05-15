@@ -312,3 +312,55 @@ fn test_lerp() {
     assert_eq!(v1.lerp(v2, -0.5), Vec4::new(-0.5, -0.5, -0.5, -0.5));
     assert_eq!(v1.lerp(v2, 1.5), Vec4::new(1.5, 1.5, 1.5, 1.5));
 }
+
+#[test]
+fn test_nlerp() {
+    let v1 = Vec4::new(-1.0, 1.0, 1.0, 1.0);
+    let v2 = Vec4::new(1.0, 1.0, 1.0, -1.0);
+
+    assert_eq!(v1.nlerp(v2, 0.0), v1.normalized());
+    assert_eq!(v1.nlerp(v2, 1.0), v2.normalized());
+}
+
+#[test]
+fn test_orthogonal_vectors() {
+    let v1 = Vec4::new(1.0, 0.0, 0.0, 0.0);
+    let v2 = Vec4::new(0.0, 1.0, 0.0, 0.0);
+
+    assert_eq!(v1.dot(v2), 0.0);
+}
+
+#[test]
+fn test_parallel_vectors() {
+    let v1 = Vec4::new(2.0, 4.0, 6.0, 8.0);
+    let v2 = Vec4::new(1.0, 2.0, 3.0, 4.0);
+
+    let dot_product = v1.dot(v2);
+    assert_eq!(dot_product, 2.0 + 8.0 + 18.0 + 32.0);
+}
+
+#[test]
+fn test_unit_vector_magnitude() {
+    let v = Vec4::new(1.0, 0.0, 0.0, 0.0);
+
+    assert_eq!(v.mag(), 1.0);
+    assert_eq!(v.mag_sq(), 1.0);
+}
+
+#[test]
+fn test_projected_identity() {
+    let v = Vec4::new(3.0, 4.0, 5.0, 6.0);
+
+    assert_eq!(v.projected(v), v);
+}
+
+#[test]
+fn test_project_and_reject_sum() {
+    let v1 = Vec4::new(5.0, 0.0, 0.0, 0.0);
+    let v2 = Vec4::new(2.0, 3.0, 8.0, -1.0);
+
+    let proj = v2.projected(v1);
+    let rej = v2.rejected(v1);
+
+    assert_eq!(proj + rej, v2);
+}
