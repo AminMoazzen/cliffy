@@ -82,8 +82,7 @@ macro_rules! impl_rotor2 {
                     let a = other;
                     let sa2_plus_baxy2 = a.s.mul_add(a.s, a.bv.xy * a.bv.xy);
 
-                    self.s = (a.s - b.s) * a.bv.xy * b.bv.xy
-                        + b.s * sa2_plus_baxy2;
+                    self.s = b.s * sa2_plus_baxy2;
                     self.bv.xy = b.bv.xy * sa2_plus_baxy2;
                 }
 
