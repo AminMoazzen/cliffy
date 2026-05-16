@@ -44,8 +44,8 @@ fn test_mul() {
     assert_eq!(v * f, Vec2::new(-5.0, 5.0));
     assert_eq!(f * v, Vec2::new(-5.0, 5.0));
 
-    v *= 1.0;
-    assert_eq!(v, v);
+    v *= 5.0;
+    assert_eq!(v, Vec2::new(-5.0, 5.0));
 }
 
 #[test]
@@ -56,8 +56,8 @@ fn test_div() {
     assert_eq!(v / f, Vec2::new(-0.2, 0.2));
     assert_eq!(f / v, Vec2::new(-5.0, 5.0));
 
-    v /= 1.0;
-    assert_eq!(v, v);
+    v /= 5.0;
+    assert_eq!(v, Vec2::new(-0.2, 0.2));
 }
 
 #[test]

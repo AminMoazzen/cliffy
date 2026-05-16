@@ -39,8 +39,8 @@ fn test_mul() {
     assert_eq!(bv * f, Bivec2::new(-5.0));
     assert_eq!(f * bv, Bivec2::new(-5.0));
 
-    bv *= 1.0;
-    assert_eq!(bv, bv);
+    bv *= 5.0;
+    assert_eq!(bv, Bivec2::new(-5.0));
 }
 
 #[test]
@@ -51,8 +51,8 @@ fn test_div() {
     assert_eq!(bv / f, Bivec2::new(-0.2));
     assert_eq!(f / bv, Bivec2::new(-5.0));
 
-    bv /= 1.0;
-    assert_eq!(bv, bv);
+    bv /= 5.0;
+    assert_eq!(bv, Bivec2::new(-0.2));
 }
 
 #[test]
